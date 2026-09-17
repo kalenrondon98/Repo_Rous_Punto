@@ -4,318 +4,861 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0f172a">
-<title>🏆 Puntos Estudiantes</title>
+<title>🏆 Puntos & Mascotas</title>
 <style>
   :root{
-    --bg:#0f172a; --card:#1e293b; --card2:#243349;
+    --bg:#0f172a; --card:#1e293b; --card2:#243349; --border:#334155;
     --accent:#38bdf8; --green:#34d399; --red:#f87171;
     --gold:#fbbf24; --text:#e2e8f0; --muted:#94a3b8;
+  }
+  body.light{
+    --bg:#f1f5f9; --card:#ffffff; --card2:#e2e8f0; --border:#cbd5e1;
+    --text:#0f172a; --muted:#64748b;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html{-webkit-text-size-adjust:100%;}
   body{
     font-family:-apple-system,'Segoe UI',Roboto,sans-serif;
     background:var(--bg); color:var(--text);
-    min-height:100vh; display:flex; flex-direction:column;
-    overflow-x:hidden;
+    min-height:100vh; display:flex; flex-direction:column; overflow-x:hidden;
+    transition:background .3s,color .3s;
   }
   header{
     position:sticky;top:0;z-index:10;
-    background:rgba(15,23,42,.95);backdrop-filter:blur(8px);
-    padding:14px 16px;border-bottom:1px solid #334155;
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:color-mix(in srgb,var(--bg) 95%, transparent);backdrop-filter:blur(8px);
+    padding:12px 14px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
   }
-  header h1{font-size:1.1rem;font-weight:700;white-space:nowrap;}
+  header h1{font-size:1.05rem;font-weight:700;white-space:nowrap;}
   .btn{
     border:none;border-radius:12px;padding:10px 14px;font-size:.9rem;
-    font-weight:600;cursor:pointer;transition:transform .1s,opacity .1s;
-    touch-action:manipulation;min-height:44px;
+    font-weight:600;cursor:pointer;transition:transform .1s,opacity .2s;
+    touch-action:manipulation;min-height:44px;color:var(--text);background:var(--card2);
   }
-  .btn:active{transform:scale(.96);}
-  .btn-admin{background:#334155;color:var(--text);}
+  .btn:active{transform:scale(.95);}
   .btn-primary{background:var(--accent);color:#082f49;}
   .btn-green{background:var(--green);color:#052e22;}
   .btn-red{background:var(--red);color:#3f0a0a;}
   .btn-gold{background:var(--gold);color:#422006;}
+  .btn:disabled{opacity:.4;pointer-events:none;}
   main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:16px 14px 100px;}
-  .search-wrap{position:sticky;top:63px;z-index:5;background:var(--bg);padding-bottom:12px;}
-  .search{
-    width:100%;padding:12px 16px;border-radius:12px;border:1px solid #334155;
-    background:var(--card);color:var(--text);font-size:16px;
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.15);
+    animation:rise .3s ease;
   }
-  .search::placeholder{color:var(--muted);}
+  @keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+  .card h2{font-size:1.05rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  input,select{
+    width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);
+    background:var(--card2);color:var(--text);font-size:16px;margin-bottom:10px;
+  }
+  input::placeholder{color:var(--muted);}
+  label{font-size:.85rem;color:var(--muted);display:block;margin:8px 0 4px;}
+  .row{display:flex;gap:10px;}
+  .row>*{flex:1;}
+  .search{
+    position:sticky;top:57px;z-index:5;
+    background:color-mix(in srgb,var(--bg) 95%, transparent);
+    padding:4px 0 12px;
+  }
   .student-card{
     background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;
-    box-shadow:0 2px 8px rgba(0,0,0,.25);
-    display:flex;flex-direction:column;gap:12px;
+    border:1px solid var(--border);display:flex;flex-direction:column;gap:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);animation:rise .3s ease;
   }
   .card-top{display:flex;align-items:center;gap:12px;min-width:0;}
   .avatar{
     width:44px;height:44px;border-radius:50%;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
-    font-weight:700;font-size:1rem;color:#082f49;background:var(--accent);
+    font-weight:700;color:#082f49;background:var(--accent);
   }
   .name-wrap{flex:1;min-width:0;}
-  .student-name{font-weight:600;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .rank{font-size:.72rem;color:var(--muted);}
+  .student-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .meta{font-size:.72rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;}
+  .code-chip{
+    font-family:monospace;background:var(--card2);border:1px dashed var(--border);
+    padding:2px 8px;border-radius:8px;font-size:.75rem;cursor:pointer;
+  }
   .points-badge{
-    background:var(--card2);color:var(--gold);font-weight:700;font-size:1rem;
-    padding:6px 14px;border-radius:999px;border:1px solid #fbbf2444;white-space:nowrap;flex-shrink:0;
+    background:var(--card2);color:var(--gold);font-weight:700;
+    padding:6px 14px;border-radius:999px;border:1px solid #fbbf2444;white-space:nowrap;
   }
-  .card-controls{
-    display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
-  }
-  .card-controls .btn{
-    padding:10px 4px;font-size:.95rem;border-radius:10px;min-width:0;
-  }
-  .empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:.95rem;line-height:1.6;}
+  .points-badge.bump{animation:bump .4s ease;}
+  @keyframes bump{40%{transform:scale(1.25);}}
+  .card-controls{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+  .card-controls .btn{padding:10px 4px;font-size:.95rem;border-radius:10px;min-width:0;}
+  .empty{text-align:center;color:var(--muted);padding:40px 16px;font-size:.92rem;line-height:1.6;}
   .fab{
     position:fixed;bottom:20px;right:20px;width:58px;height:58px;border-radius:50%;
-    background:var(--accent);color:#082f49;font-size:1.8rem;font-weight:700;
-    border:none;box-shadow:0 4px 16px rgba(56,189,248,.4);cursor:pointer;
-    display:flex;align-items:center;justify-content:center;z-index:20;
+    background:var(--accent);color:#082f49;font-size:1.8rem;font-weight:700;border:none;
+    box-shadow:0 4px 16px rgba(56,189,248,.4);cursor:pointer;z-index:20;
+    display:flex;align-items:center;justify-content:center;
   }
   .fab:active{transform:scale(.92);}
+  /* Tabs admin */
+  .tabs{
+    position:sticky;top:57px;z-index:5;display:flex;gap:6px;
+    background:color-mix(in srgb,var(--bg) 95%, transparent);padding:4px 0 12px;
+    overflow-x:auto;
+  }
+  .tab{
+    flex:1;padding:10px 4px;border-radius:12px;border:1px solid var(--border);
+    background:var(--card);color:var(--muted);font-weight:600;font-size:.82rem;
+    cursor:pointer;white-space:nowrap;min-height:44px;
+  }
+  .tab.active{background:var(--accent);color:#082f49;border-color:transparent;}
+  /* Modal */
   .modal-bg{
-    position:fixed;inset:0;background:rgba(2,6,23,.8);z-index:50;
+    position:fixed;inset:0;background:rgba(2,6,23,.75);z-index:50;
     display:flex;align-items:center;justify-content:center;padding:20px;
   }
   .modal{
-    background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:380px;
-    border:1px solid #334155;
+    background:var(--card);border-radius:20px;padding:22px;width:100%;max-width:400px;
+    border:1px solid var(--border);max-height:85vh;overflow-y:auto;
   }
-  .modal h2{font-size:1.15rem;margin-bottom:16px;}
-  .modal input{
-    width:100%;padding:12px 14px;border-radius:12px;border:1px solid #334155;
-    background:var(--card2);color:var(--text);font-size:16px;margin-bottom:14px;
-  }
-  .modal .row{display:flex;gap:10px;}
-  .modal .row .btn{flex:1;}
+  .modal h2{font-size:1.1rem;margin-bottom:14px;}
   .hidden{display:none !important;}
+  /* Toast */
   .toast{
-    position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
-    background:#0ea5e9;color:#fff;padding:10px 20px;border-radius:999px;
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:#0ea5e9;color:#fff;padding:11px 22px;border-radius:999px;
     font-weight:600;font-size:.9rem;z-index:99;box-shadow:0 4px 12px rgba(0,0,0,.4);
-    max-width:90vw;text-align:center;
-    animation:fadein .2s ease;
+    max-width:90vw;text-align:center;animation:fadein .2s ease;
   }
-  @keyframes fadein{from{opacity:0;transform:translateX(-50%) translateY(10px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
-  /* Pantallas muy angostas */
-  @media (max-width:380px){
-    .card-controls{grid-template-columns:repeat(3,1fr);}
-    header h1{font-size:1rem;}
+  .toast.err{background:var(--red);} .toast.ok{background:var(--green);color:#052e22;}
+  @keyframes fadein{from{opacity:0;transform:translateX(-50%) translateY(10px);}to{opacity:1;transform:translateX(-50%);}}
+  /* Mascota */
+  .pet-stage{
+    display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0;
   }
+  .pet-emoji{
+    font-size:70px;line-height:1;transition:font-size .5s,transform .3s,filter .5s;
+    filter:saturate(1.2);user-select:none;
+  }
+  .pet-emoji.thin{filter:saturate(.5) brightness(.85);}
+  .pet-emoji.happy{transform:rotate(-6deg) scale(1.05);}
+  .mood{font-size:1.5rem;position:absolute;margin-left:70px;margin-top:-12px;}
+  .food-bar{
+    width:100%;height:12px;border-radius:999px;background:var(--card2);
+    overflow:hidden;border:1px solid var(--border);
+  }
+  .food-fill{height:100%;border-radius:999px;transition:width .5s;
+    background:linear-gradient(90deg,#f87171,#fbbf24,#34d399);}
+  .pet-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0;}
+  .pet-opt{
+    font-size:2rem;padding:10px 0;border-radius:14px;background:var(--card2);
+    border:2px solid transparent;cursor:pointer;text-align:center;
+  }
+  .pet-opt.sel{border-color:var(--accent);background:#38bdf833;}
+  .stat-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .stat{
+    background:var(--card2);border:1px solid var(--border);border-radius:12px;
+    padding:8px 14px;font-size:.85rem;font-weight:600;text-align:center;
+  }
+  /* Rachas */
+  .streak{color:#fb923c;font-weight:700;}
+  /* Confeti */
+  .confetti{position:fixed;top:-30px;z-index:200;font-size:1.3rem;pointer-events:none;
+    animation:fall 2s ease-in forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg);opacity:.6;}}
+  /* Ranking */
+  .rank-item{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+    background:var(--card2);margin-bottom:8px;
+  }
+  .rank-pos{width:34px;text-align:center;font-weight:800;}
+  /* Historial */
+  .hist-item{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+    background:var(--card2);margin-bottom:8px;font-size:.88rem;
+  }
+  .delta{font-weight:800;min-width:48px;text-align:right;}
+  .delta.pos{color:var(--green);} .delta.neg{color:var(--red);}
+  .hist-date{font-size:.72rem;color:var(--muted);width:100%;}
+  /* Switch */
+  .switch-row{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 0;border-bottom:1px solid var(--border);}
+  .switch{
+    width:52px;height:30px;border-radius:999px;background:var(--card2);
+    border:1px solid var(--border);position:relative;cursor:pointer;flex-shrink:0;
+  }
+  .switch::after{
+    content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+    background:var(--muted);transition:.2s;
+  }
+  .switch.on{background:var(--accent);}
+  .switch.on::after{left:25px;background:#fff;}
+  .days-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .day-chip{
+    padding:8px 0;width:44px;text-align:center;border-radius:10px;font-size:.8rem;
+    background:var(--card2);border:1px solid var(--border);cursor:pointer;font-weight:600;
+  }
+  .day-chip.sel{background:var(--accent);color:#082f49;border-color:transparent;}
+  .badge{font-size:.7rem;background:var(--card2);border-radius:999px;padding:2px 8px;color:var(--muted);}
+  @media (max-width:380px){ .card-controls{grid-template-columns:repeat(3,1fr);} }
 </style>
+<base target="_blank">
 </head>
 <body>
 
 <header>
-  <h1>🏆 Puntos</h1>
+  <h1 id="hdrTitle">🏆 Puntos & Mascotas</h1>
   <div style="display:flex;gap:8px;">
-    <button class="btn btn-admin hidden" id="btnBackup" onclick="exportData()">💾</button>
-    <button class="btn btn-admin" id="btnAdmin" onclick="toggleAdmin()">👤 Admin</button>
+    <button class="btn" id="btnTheme" onclick="toggleTheme()">🌙</button>
+    <button class="btn hidden" id="btnHome" onclick="goHome()">🏠</button>
+    <button class="btn" id="btnAdmin" onclick="adminClick()">👤 Admin</button>
   </div>
 </header>
 
-<main>
-  <div class="search-wrap">
-    <input class="search" id="search" placeholder="🔍 Buscar estudiante..." oninput="render()">
-  </div>
-  <div id="list"></div>
-  <div class="empty hidden" id="empty">Sin estudiantes todavía.<br>Pulsa <b>+</b> (como admin) para agregar el primero.</div>
-</main>
+<main id="main"></main>
 
-<button class="fab hidden" id="fab" onclick="openAdd()">+</button>
+<button class="fab hidden" id="fab" onclick="fabClick()">+</button>
 
-<!-- Login admin -->
+<!-- Login -->
 <div class="modal-bg hidden" id="loginModal">
   <div class="modal">
     <h2>🔐 Acceso Admin</h2>
     <input type="password" id="passInput" placeholder="Contraseña" autocomplete="off">
     <div class="row">
       <button class="btn btn-primary" onclick="doLogin()">Entrar</button>
-      <button class="btn btn-admin" onclick="closeModal('loginModal')">Cancelar</button>
+      <button class="btn" onclick="closeModal('loginModal')">Cancelar</button>
     </div>
   </div>
 </div>
 
-<!-- Agregar estudiante -->
-<div class="modal-bg hidden" id="addModal">
-  <div class="modal">
-    <h2>➕ Agregar estudiante</h2>
-    <input type="text" id="nameInput" placeholder="Nombre del estudiante" autocomplete="off">
-    <div class="row">
-      <button class="btn btn-primary" onclick="addStudent()">Agregar</button>
-      <button class="btn btn-admin" onclick="closeModal('addModal')">Cancelar</button>
-    </div>
-  </div>
+<!-- Modal genérico -->
+<div class="modal-bg hidden" id="genericModal">
+  <div class="modal" id="genericContent"></div>
 </div>
 
 <script>
-const LS_KEY = 'puntosEstudiantes_v1';
-const SESS_KEY = 'puntosAdminSession';
-/* Hash SHA-256 de la contraseña (por defecto "admin123").
-   Para cambiarla: abre la consola del navegador y ejecuta:
+/* ═══════════════ CONFIGURACIÓN ═══════════════ */
+/* Pega aquí tu config de Firebase (console.firebase.google.com → Agregar app → Web)
+   Deja apiKey vacío para usar solo almacenamiento local. */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+/* Hash SHA-256 de la contraseña admin (por defecto "admin123").
+   Para generar uno nuevo, en la consola del navegador:
    crypto.subtle.digest('SHA-256', new TextEncoder().encode('TU_CLAVE')).then(b=>console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''))) */
 const ADMIN_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+const FEED_COST = 5;    // puntos que cuesta alimentar
+const FEED_FOOD = 20;   // saciedad que recupera
+const FOOD_DECAY = 10;  // saciedad que pierde por día
+const PETS = ['🐱','🐶','🐰','🦊','🐼','🐨','🐸','🐵','🦄','🐷'];
+const DAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
+/* ═══════════════ ESTADO ═══════════════ */
+const LS_KEY = 'puntosApp_v2';
+const THEME_KEY = 'puntosTheme';
+const SESS_KEY = 'puntosAdminSession';
 let isAdmin = sessionStorage.getItem(SESS_KEY) === '1';
-let students = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-let failedAttempts = 0;
-let lockedUntil = 0;
+let failedAttempts = 0, lockedUntil = 0;
+let view = 'home';           // home | admin | student
+let adminTab = 'students';
+let currentStudent = null;   // estudiante en vista estudiante
+let remoteDb = null, remoteApplying = false;
 
-function save(){ localStorage.setItem(LS_KEY, JSON.stringify(students)); }
+function defaultState(){
+  return {
+    courses: [], students: [], movements: [],
+    files: {},           // { sid: [{name,size,ts,data?,url?}] }
+    streakDays: {},      // { courseId: ['2026-09-17',...] }
+    settings: { sounds:true, notifications:true }
+  };
+}
+let state = defaultState();
 
+function save(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast('⚠️ Almacenamiento lleno','err'); }
+  if(remoteDb && !remoteApplying){
+    remoteDb.setDoc(remoteDb.docRef, state).catch(()=>toast('⚠️ Error al sincronizar','err'));
+  }
+}
+
+async function initFirebase(){
+  if(!FIREBASE_CONFIG.apiKey) return;
+  try{
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+    const fsMod  = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const stMod  = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js');
+    const app = appMod.initializeApp(FIREBASE_CONFIG);
+    const fs = fsMod.getFirestore(app);
+    const storage = stMod.getStorage(app);
+    const docRef = fsMod.doc(fs, 'puntosApp', 'data');
+    remoteDb = { fsMod, stMod, fs, storage, docRef,
+      setDoc: (ref,data)=>fsMod.setDoc(ref,data),
+      doc: (...a)=>fsMod.doc(...a) };
+    // Carga inicial
+    const snap = await fsMod.getDoc(docRef);
+    if(snap.exists()){ state = Object.assign(defaultState(), snap.data()); }
+    // Escucha en tiempo real
+    fsMod.onSnapshot(docRef, (s)=>{
+      if(s.exists()){
+        remoteApplying = true;
+        state = Object.assign(defaultState(), s.data());
+        remoteApplying = false;
+        render();
+      }
+    });
+    toast('☁️ Conectado a la base de datos','ok');
+  }catch(e){ console.warn('Firebase error', e); toast('⚠️ No se pudo conectar a Firebase','err'); }
+}
+
+/* ═══════════════ UTILIDADES ═══════════════ */
+const $ = id => document.getElementById(id);
+function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-ES',{day:'2-digit',month:'short'}) + ' ' +
+         d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+}
+function genCode(){
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let c; do{ c = Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join(''); }
+  while(state.students.some(s=>s.code===c));
+  return c;
+}
 async function sha256(text){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-
-function toggleAdmin(){
-  if(isAdmin){
-    isAdmin = false;
-    sessionStorage.removeItem(SESS_KEY);
-    updateUI();
-  } else {
-    document.getElementById('loginModal').classList.remove('hidden');
-    setTimeout(()=>document.getElementById('passInput').focus(),100);
+let toastTimer;
+function toast(msg, type=''){
+  if(!state.settings.notifications && type==='') return;
+  const old = document.querySelector('.toast'); if(old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast ' + type; t.textContent = msg;
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.remove(), 2400);
+}
+/* Sonidos con WebAudio (sin archivos) */
+let actx;
+function sfx(type){
+  if(!state.settings.sounds) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const play = (f, t0, dur, type='sine', vol=.15)=>{
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(vol, actx.currentTime + t0);
+      g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + t0 + dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(actx.currentTime + t0); o.stop(actx.currentTime + t0 + dur);
+    };
+    if(type==='click') play(600,0,.06,'square',.08);
+    if(type==='good'){ play(660,0,.12); play(880,.1,.18); }
+    if(type==='bad') play(220,0,.25,'sawtooth',.1);
+    if(type==='feed'){ play(500,0,.08,'triangle'); play(750,.08,.1,'triangle'); play(1000,.16,.14,'triangle'); }
+    if(type==='pop') play(880,0,.08,'sine',.12);
+  }catch(e){}
+}
+function confetti(){
+  const emo = ['🎉','⭐','✨','🌟','💛'];
+  for(let i=0;i<26;i++){
+    const s = document.createElement('span');
+    s.className='confetti'; s.textContent = emo[Math.floor(Math.random()*emo.length)];
+    s.style.left = Math.random()*100+'vw';
+    s.style.animationDelay = (Math.random()*.5)+'s';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 2600);
   }
 }
+function closeModal(id){ $(id).classList.add('hidden'); }
+function openModal(html){ $('genericContent').innerHTML = html; $('genericModal').classList.remove('hidden'); }
+$('genericModal').addEventListener('click', e=>{ if(e.target.id==='genericModal') closeModal('genericModal'); });
 
+/* ═══════════════ TEMA ═══════════════ */
+function applyTheme(){
+  const light = localStorage.getItem(THEME_KEY)==='light';
+  document.body.classList.toggle('light', light);
+  $('btnTheme').textContent = light ? '☀️' : '🌙';
+}
+function toggleTheme(){ 
+  const light = localStorage.getItem(THEME_KEY)==='light';
+  localStorage.setItem(THEME_KEY, light?'dark':'light');
+  applyTheme(); sfx('click');
+}
+
+/* ═══════════════ MASCOTAS ═══════════════ */
+function getPet(sid){ return state.students.find(s=>s.id===sid)?.pet; }
+function effectiveFood(pet){
+  if(!pet) return 0;
+  const days = Math.floor((Date.now() - pet.updated) / 86400000);
+  return Math.max(0, pet.food - days * FOOD_DECAY);
+}
+function petMood(food){
+  if(food<=15) return {e:'💀', t:'Muy hambrienta 😖', cls:'thin'};
+  if(food<=35) return {e:'🥺', t:'Hambrienta', cls:'thin'};
+  if(food<=60) return {e:'🙂', t:'Contenta', cls:''};
+  if(food<=85) return {e:'😄', t:'Feliz', cls:'happy'};
+  return {e:'🤩', t:'Muy feliz ¡gordita!', cls:'happy'};
+}
+function petLevel(st){ return Math.floor((st.totalEarned||0)/25)+1; }
+
+/* ═══════════════ NAVEGACIÓN ═══════════════ */
+function goHome(){ view='home'; currentStudent=null; render(); }
+function adminClick(){
+  if(view==='admin'){ view='home'; isAdmin=false; sessionStorage.removeItem(SESS_KEY); render(); return; }
+  if(isAdmin){ view='admin'; render(); return; }
+  $('loginModal').classList.remove('hidden');
+  setTimeout(()=>$('passInput').focus(),100);
+}
 async function doLogin(){
   const now = Date.now();
-  if(now < lockedUntil){
-    toast('⏳ Bloqueado. Intenta en ' + Math.ceil((lockedUntil-now)/1000) + 's');
-    return;
-  }
-  const p = document.getElementById('passInput');
-  const hash = await sha256(p.value);
+  if(now < lockedUntil){ toast('⏳ Bloqueado ' + Math.ceil((lockedUntil-now)/1000)+'s','err'); return; }
+  const hash = await sha256($('passInput').value);
   if(hash === ADMIN_HASH){
-    isAdmin = true;
-    sessionStorage.setItem(SESS_KEY, '1');
-    failedAttempts = 0;
-    p.value = '';
-    closeModal('loginModal'); updateUI();
-    toast('✅ Modo admin activado');
+    isAdmin = true; sessionStorage.setItem(SESS_KEY,'1');
+    failedAttempts = 0; $('passInput').value='';
+    closeModal('loginModal'); view='admin'; render();
+    toast('✅ Bienvenida, profe','ok'); sfx('good');
   } else {
     failedAttempts++;
-    if(failedAttempts >= 5){
-      lockedUntil = Date.now() + 60000; // bloqueo 60 s tras 5 fallos
-      failedAttempts = 0;
-      toast('🚫 Demasiados intentos. Bloqueado 60 s');
-    } else {
-      toast('❌ Incorrecta (' + failedAttempts + '/5)');
-    }
+    if(failedAttempts>=5){ lockedUntil = Date.now()+60000; failedAttempts=0; toast('🚫 Bloqueado 60 s','err'); }
+    else toast('❌ Incorrecta ('+failedAttempts+'/5)','err');
+    sfx('bad');
   }
 }
+function enterStudent(){
+  const code = $('codeInput').value.trim().toUpperCase();
+  const st = state.students.find(s=>s.code===code);
+  if(!st){ toast('❌ Código no válido','err'); sfx('bad'); return; }
+  currentStudent = st.id; view='student'; sfx('pop'); render();
+}
+function fabClick(){ adminTab==='students' ? openStudentModal() : openCourseModal(); }
 
-function updateUI(){
-  document.getElementById('fab').classList.toggle('hidden', !isAdmin);
-  document.getElementById('btnBackup').classList.toggle('hidden', !isAdmin);
-  document.getElementById('btnAdmin').textContent = isAdmin ? '🚪 Salir' : '👤 Admin';
-  render();
+/* ═══════════════ RENDER PRINCIPAL ═══════════════ */
+function render(){
+  $('btnHome').classList.toggle('hidden', view==='home');
+  $('btnAdmin').textContent = view==='admin' ? '🚪 Salir' : '👤 Admin';
+  $('fab').classList.toggle('hidden', view!=='admin');
+  if(view==='home') renderHome();
+  if(view==='admin') renderAdmin();
+  if(view==='student') renderStudent();
 }
 
-function render(){
-  const q = document.getElementById('search').value.toLowerCase().trim();
-  const sorted = [...students].sort((a,b)=>b.points-a.points);
-  const list = document.getElementById('list');
-  const filtered = sorted.filter(s=>s.name.toLowerCase().includes(q));
-  document.getElementById('empty').classList.toggle('hidden', students.length>0);
-  list.innerHTML = filtered.map(s=>{
-    const rank = sorted.indexOf(s)+1;
-    const medal = rank===1?'🥇 1°':rank===2?'🥈 2°':rank===3?'🥉 3°':'#'+rank;
-    const initials = s.name.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase() || '?';
-    const controls = isAdmin ? `
-      <div class="card-controls">
-        <button class="btn btn-gold" onclick="change('${s.id}',1)">+1</button>
-        <button class="btn btn-gold" onclick="change('${s.id}',5)">+5</button>
-        <button class="btn btn-green" onclick="change('${s.id}',10)">+10</button>
-        <button class="btn btn-red" onclick="change('${s.id}',-1)">−1</button>
-        <button class="btn btn-red" onclick="removeStudent('${s.id}')" aria-label="Eliminar">🗑️</button>
-      </div>` : '';
-    return `<div class="student-card">
-      <div class="card-top">
-        <div class="avatar">${initials}</div>
-        <div class="name-wrap">
-          <div class="student-name">${escapeHtml(s.name)}</div>
-          <span class="rank">${medal}</span>
-        </div>
+function renderHome(){
+  const rankHtml = state.courses.filter(c=>c.rankingPublic).map(c=>{
+    const tops = state.students.filter(s=>s.courseId===c.id).sort((a,b)=>b.points-a.points).slice(0,5);
+    return `<div class="card">
+      <h2>🏅 ${esc(c.name)}</h2>
+      ${tops.length ? tops.map((s,i)=>`<div class="rank-item">
+        <span class="rank-pos">${['🥇','🥈','🥉','4°','5°'][i]}</span>
+        <span style="flex:1">${esc(s.name)}</span>
         <span class="points-badge">${s.points} pts</span>
-      </div>
-      ${controls}
+      </div>`).join('') : '<div class="empty">Sin estudiantes aún</div>'}
     </div>`;
   }).join('');
+  $('main').innerHTML = `
+    <div class="card" style="text-align:center;padding:26px 18px;">
+      <div style="font-size:3rem;margin-bottom:6px;">🎒</div>
+      <h2 style="justify-content:center;">Entrar como estudiante</h2>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:14px;">Escribe el código que te dio tu profe</p>
+      <input id="codeInput" placeholder="Ej: ABC123" maxlength="6" autocomplete="off"
+        style="text-align:center;letter-spacing:6px;font-size:1.3rem;text-transform:uppercase;font-family:monospace;"
+        onkeydown="if(event.key==='Enter')enterStudent()">
+      <button class="btn btn-primary" style="width:100%;" onclick="enterStudent()">Ingresar 🚀</button>
+    </div>
+    ${rankHtml}`;
 }
 
-function escapeHtml(t){
-  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+/* ═══════════════ VISTA ADMIN ═══════════════ */
+function renderAdmin(){
+  const tabs = [['students','👨‍🎓 Estudiantes'],['courses','📚 Cursos'],['history','📜 Historial'],['settings','⚙️ Ajustes']];
+  let body = '';
+  if(adminTab==='students') body = adminStudents();
+  if(adminTab==='courses') body = adminCourses();
+  if(adminTab==='history') body = adminHistory();
+  if(adminTab==='settings') body = adminSettings();
+  $('main').innerHTML = `
+    <div class="tabs">${tabs.map(([id,t])=>
+      `<button class="tab ${adminTab===id?'active':''}" onclick="adminTab='${id}';render()">${t}</button>`).join('')}
+    </div>${body}`;
 }
 
-function openAdd(){
-  document.getElementById('addModal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('nameInput').focus(),100);
+function adminStudents(){
+  const q = ($('admSearch')?.value || '').toLowerCase();
+  const list = state.students.filter(s=>s.name.toLowerCase().includes(q));
+  return `
+    <div class="search"><input placeholder="🔍 Buscar..." value="${esc(q)}"
+      oninput="render();setTimeout(()=>{const e=document.getElementById('admSearch');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length)}},0)"
+      id="admSearch" style="margin-bottom:0;"></div>
+    ${list.map(s=>{
+      const c = state.courses.find(x=>x.id===s.courseId);
+      return `<div class="student-card">
+        <div class="card-top">
+          <div class="avatar">${esc(s.name.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?')}</div>
+          <div class="name-wrap">
+            <div class="student-name">${esc(s.name)}</div>
+            <div class="meta">
+              <span class="badge">${esc(c?.name||'Sin curso')}</span>
+              <span class="code-chip" onclick="navigator.clipboard?.writeText('${s.code}');toast('📋 Código copiado: ${s.code}')" title="Toca para copiar">${s.code}</span>
+              ${s.streak>0?`<span class="streak">🔥${s.streak}</span>`:''}
+            </div>
+          </div>
+          <span class="points-badge">${s.points} pts</span>
+        </div>
+        <div class="card-controls">
+          <button class="btn btn-gold" onclick="changePoints('${s.id}',1)">+1</button>
+          <button class="btn btn-gold" onclick="changePoints('${s.id}',5)">+5</button>
+          <button class="btn btn-green" onclick="changePoints('${s.id}',10)">+10</button>
+          <button class="btn btn-red" onclick="changePoints('${s.id}',-1)">−1</button>
+          <button class="btn btn-red" onclick="removeStudent('${s.id}')">🗑️</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" style="flex:1;font-size:.8rem;" onclick="openStudentModal('${s.id}')">✏️ Editar</button>
+          <button class="btn" style="flex:1;font-size:.8rem;" onclick="viewFiles('${s.id}')">📎 Archivos (${(state.files[s.id]||[]).length})</button>
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty">Sin estudiantes. Pulsa <b>+</b> para agregar.</div>'}`;
 }
 
-function addStudent(){
-  const inp = document.getElementById('nameInput');
-  const name = inp.value.trim().replace(/\s+/g,' ');
-  if(!name){ toast('⚠️ Escribe un nombre'); return; }
-  students.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), name, points:0});
-  save(); inp.value=''; closeModal('addModal'); render();
-  toast('✅ ' + name + ' agregado');
+function adminCourses(){
+  return state.courses.map(c=>{
+    const today = todayStr();
+    const activated = (state.streakDays[c.id]||[]).includes(today);
+    const studs = state.students.filter(s=>s.courseId===c.id).length;
+    return `<div class="card">
+      <h2>📚 ${esc(c.name)}
+        <span class="badge" style="margin-left:auto;">${studs} estudiantes</span></h2>
+      <div class="meta" style="margin-bottom:10px;">
+        <span class="badge">🗓️ ${c.days?.length ? c.days.map(d=>DAYS[d]).join(', ') : 'Sin horario'}</span>
+        <span class="badge">🕐 ${esc(c.time||'—')}</span>
+        ${activated?'<span class="badge" style="color:var(--green);">🔥 Racha activada hoy</span>':''}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-gold" style="flex:1;min-width:130px;" onclick="activateStreak('${c.id}')" ${activated?'disabled':''}>
+          ${activated?'✅ Activada':'🔥 Activar racha de hoy'}</button>
+        <button class="btn" onclick="openCourseModal('${c.id}')">✏️</button>
+        <button class="btn btn-red" onclick="removeCourse('${c.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">Sin cursos. Pulsa <b>+</b> para crear el primero.</div>';
 }
 
-function change(id, delta){
-  const s = students.find(x=>x.id===id);
-  if(s){
-    s.points = Math.max(0, s.points + delta);
-    save(); render();
+function adminHistory(){
+  const movs = [...state.movements].sort((a,b)=>b.ts-a.ts).slice(0,120);
+  return `<div class="card"><h2>📜 Últimos movimientos</h2>
+    ${movs.map(m=>{
+      const st = state.students.find(s=>s.id===m.sid);
+      return `<div class="hist-item">
+        <span style="flex:1;min-width:0;">
+          <b>${esc(st?.name||'Eliminado')}</b> — ${esc(m.reason||'Sin motivo')}
+          <span class="hist-date">${fmtDate(m.ts)}</span>
+        </span>
+        <span class="delta ${m.delta>=0?'pos':'neg'}">${m.delta>=0?'+':''}${m.delta}</span>
+      </div>`;
+    }).join('') || '<div class="empty">Aún no hay movimientos</div>'}
+  </div>`;
+}
+
+function adminSettings(){
+  const s = state.settings;
+  const sw = (key,label,desc)=>`<div class="switch-row">
+      <div><b style="font-size:.92rem;">${label}</b><br><span style="font-size:.78rem;color:var(--muted);">${desc}</span></div>
+      <div class="switch ${s[key]?'on':''}" onclick="state.settings.${key}=!state.settings.${key};save();render()"></div>
+    </div>`;
+  return `<div class="card"><h2>⚙️ Preferencias</h2>
+      ${sw('sounds','🔊 Sonidos','Efectos al tocar botones y alimentar mascotas')}
+      ${sw('notifications','🔔 Notificaciones','Mensajes emergentes con avisos')}
+    </div>
+    <div class="card"><h2>💾 Datos</h2>
+      <div class="row">
+        <button class="btn btn-primary" onclick="exportData()">Exportar respaldo</button>
+        <button class="btn" onclick="document.getElementById('importFile').click()">Importar</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
+      <p style="font-size:.78rem;color:var(--muted);margin-top:10px;">
+        ${FIREBASE_CONFIG.apiKey ? '☁️ Base de datos conectada: los cambios se sincronizan en tiempo real.' : '💻 Modo local: los datos viven en este dispositivo. Para sincronizar entre dispositivos, configura Firebase en el código.'}
+      </p>
+    </div>`;
+}
+
+/* ═══════════════ ACCIONES ADMIN ═══════════════ */
+let editCourseDays = [];
+function openCourseModal(id){
+  const c = id ? state.courses.find(x=>x.id===id) : null;
+  editCourseDays = c ? [...(c.days||[])] : [];
+  openModal(`<h2>${c?'✏️ Editar':'➕ Nuevo'} curso</h2>
+    <label>Nombre del curso</label>
+    <input id="cName" value="${c?esc(c.name):''}" placeholder="Ej: 3ro A - Matemáticas">
+    <label>Días de clase (para las rachas)</label>
+    <div class="days-row" id="cDays">${DAYS.map((d,i)=>
+      `<div class="day-chip ${editCourseDays.includes(i)?'sel':''}" onclick="toggleDay(${i},this)">${d}</div>`).join('')}
+    </div>
+    <label>Hora</label>
+    <input id="cTime" type="time" value="${c?esc(c.time||''):''}">
+    <label style="display:flex;align-items:center;gap:10px;margin-top:14px;">
+      <div class="switch ${c?.rankingPublic?'on':''}" id="cRank" onclick="this.classList.toggle('on')"></div>
+      🏅 Ranking público (los estudiantes lo ven sin código)
+    </label>
+    <div class="row" style="margin-top:16px;">
+      <button class="btn btn-primary" onclick="saveCourse('${id||''}')">Guardar</button>
+      <button class="btn" onclick="closeModal('genericModal')">Cancelar</button>
+    </div>`);
+}
+function toggleDay(i, el){
+  const p = editCourseDays.indexOf(i);
+  if(p>=0){ editCourseDays.splice(p,1); el.classList.remove('sel'); }
+  else { editCourseDays.push(i); el.classList.add('sel'); }
+}
+function saveCourse(id){
+  const name = $('cName').value.trim();
+  if(!name){ toast('⚠️ Escribe el nombre','err'); return; }
+  const data = { name, days:[...editCourseDays].sort(), time:$('cTime').value, rankingPublic:$('cRank').classList.contains('on') };
+  if(id){ Object.assign(state.courses.find(x=>x.id===id), data); }
+  else { state.courses.push({id:uid(), ...data}); state.streakDays[data.id]=state.streakDays[data.id]||[]; }
+  save(); closeModal('genericModal'); render(); toast('💾 Curso guardado','ok'); sfx('good');
+}
+function removeCourse(id){
+  const c = state.courses.find(x=>x.id===id);
+  const n = state.students.filter(s=>s.courseId===id).length;
+  if(confirm(`¿Eliminar "${c.name}"? ${n>0?`Los ${n} estudiantes quedarán sin curso.`:''}`)){
+    state.courses = state.courses.filter(x=>x.id!==id);
+    state.students.forEach(s=>{ if(s.courseId===id) s.courseId=null; });
+    delete state.streakDays[id];
+    save(); render(); toast('🗑️ Curso eliminado');
   }
 }
+function activateStreak(courseId){
+  const today = todayStr();
+  state.streakDays[courseId] = state.streakDays[courseId]||[];
+  if(state.streakDays[courseId].includes(today)) return;
+  state.streakDays[courseId].push(today);
+  const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+  let rewarded = 0;
+  state.students.filter(s=>s.courseId===courseId).forEach(s=>{
+    const earnedToday = state.movements.filter(m=>m.sid===s.id && m.ts>=startOfDay.getTime() && m.delta>0)
+      .reduce((a,m)=>a+m.delta,0);
+    if(earnedToday>0){ s.streak=(s.streak||0)+1; rewarded++; }
+    else s.streak=0;
+  });
+  save(); render();
+  confetti(); sfx('good');
+  toast(`🔥 ¡Racha activada! ${rewarded} estudiantes la mantienen`,'ok');
+}
 
+function openStudentModal(id){
+  const st = id ? state.students.find(x=>x.id===id) : null;
+  openModal(`<h2>${st?'✏️ Editar':'➕ Agregar'} estudiante</h2>
+    <label>Nombre completo</label>
+    <input id="sName" value="${st?esc(st.name):''}" placeholder="Ej: María Pérez">
+    <label>Curso (obligatorio)</label>
+    <select id="sCourse">
+      <option value="">— Selecciona un curso —</option>
+      ${state.courses.map(c=>`<option value="${c.id}" ${st?.courseId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}
+    </select>
+    ${st?'':`<label>Puntos iniciales (opcional)</label>
+    <input id="sPoints" type="number" min="0" value="0">`}
+    ${st?`<p style="font-size:.8rem;color:var(--muted);">Código: <b style="font-family:monospace;">${st.code}</b></p>`:''}
+    <div class="row" style="margin-top:14px;">
+      <button class="btn btn-primary" onclick="saveStudent('${id||''}')">Guardar</button>
+      <button class="btn" onclick="closeModal('genericModal')">Cancelar</button>
+    </div>`);
+}
+function saveStudent(id){
+  const name = $('sName').value.trim().replace(/\s+/g,' ');
+  const courseId = $('sCourse').value;
+  if(!name){ toast('⚠️ Escribe el nombre','err'); return; }
+  if(!courseId){ toast('⚠️ Selecciona un curso','err'); return; }
+  if(id){
+    const st = state.students.find(x=>x.id===id);
+    Object.assign(st, {name, courseId});
+  } else {
+    const pts = Math.max(0, parseInt($('sPoints').value)||0);
+    state.students.push({id:uid(), name, courseId, code:genCode(), points:pts,
+      totalEarned:pts, streak:0, pet:null});
+    if(pts>0) state.movements.push({id:uid(), sid:state.students[state.students.length-1].id, delta:pts, reason:'Puntos iniciales', ts:Date.now()});
+    toast('✅ Agregado. Toca su código para copiarlo','ok');
+  }
+  save(); closeModal('genericModal'); render(); sfx('good');
+}
 function removeStudent(id){
-  const s = students.find(x=>x.id===id);
-  if(s && confirm('¿Eliminar a ' + s.name + '?')){
-    students = students.filter(x=>x.id!==id);
+  const s = state.students.find(x=>x.id===id);
+  if(s && confirm('¿Eliminar a '+s.name+'?')){
+    state.students = state.students.filter(x=>x.id!==id);
+    delete state.files[id];
     save(); render(); toast('🗑️ Eliminado');
   }
 }
-
+function changePoints(id, delta){
+  const s = state.students.find(x=>x.id===id);
+  if(!s) return;
+  const reason = prompt((delta>0?'Motivo de los +'+delta:'Motivo de los '+delta)+' puntos (opcional):') || '';
+  s.points = Math.max(0, s.points + delta);
+  if(delta>0) s.totalEarned = (s.totalEarned||0) + delta;
+  state.movements.push({id:uid(), sid:id, delta, reason, ts:Date.now()});
+  save(); render(); sfx(delta>0?'good':'bad');
+}
+function viewFiles(sid){
+  const st = state.students.find(x=>x.id===sid);
+  const files = state.files[sid]||[];
+  openModal(`<h2>📎 Archivos de ${esc(st.name)}</h2>
+    ${files.map((f,i)=>`<div class="rank-item">
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;">📄 ${esc(f.name)}<br>
+      <span class="badge">${(f.size/1024).toFixed(0)} KB · ${fmtDate(f.ts)}</span></span>
+      <a class="btn btn-primary" style="text-decoration:none;" href="${f.data||f.url}" download="${esc(f.name)}">⬇️</a>
+      <button class="btn btn-red" onclick="deleteFile('${sid}',${i})">🗑️</button>
+    </div>`).join('') || '<div class="empty">No ha subido archivos</div>'}
+    <button class="btn" style="width:100%;margin-top:10px;" onclick="closeModal('genericModal')">Cerrar</button>`);
+}
+function deleteFile(sid, i){
+  (state.files[sid]||[]).splice(i,1);
+  save(); viewFiles(sid); render();
+}
 function exportData(){
-  const data = JSON.stringify(students, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
+  const blob = new Blob([JSON.stringify(state)],{type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'puntos_respaldo_' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  toast('💾 Respaldo descargado');
+  a.download = 'respaldo_puntos_'+todayStr()+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('💾 Respaldo descargado','ok');
+}
+function importData(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{ try{
+    state = Object.assign(defaultState(), JSON.parse(r.result));
+    save(); render(); toast('✅ Datos importados','ok');
+  }catch(e){ toast('❌ Archivo inválido','err'); } };
+  r.readAsText(f);
 }
 
-function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+/* ═══════════════ VISTA ESTUDIANTE ═══════════════ */
+function renderStudent(){
+  const st = state.students.find(s=>s.id===currentStudent);
+  if(!st){ goHome(); return; }
+  const c = state.courses.find(x=>x.id===st.courseId);
 
-let toastTimer;
-function toast(msg){
-  const old = document.querySelector('.toast'); if(old) old.remove();
-  const t = document.createElement('div');
-  t.className='toast'; t.textContent=msg;
-  document.body.appendChild(t);
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.remove(), 2200);
+  /* Primera vez: escoger mascota */
+  if(!st.pet){
+    $('main').innerHTML = `<div class="card" style="text-align:center;">
+      <h2 style="justify-content:center;">👋 ¡Hola, ${esc(st.name.split(' ')[0])}!</h2>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:8px;">Escoge tu mascota 🐾</p>
+      <div class="pet-grid">${PETS.map(p=>
+        `<div class="pet-opt" id="pet_${p}" onclick="pickPet('${p}')">${p}</div>`).join('')}
+      </div>
+      <p style="font-size:.78rem;color:var(--muted);">La alimentarás con tus puntos. ¡Cuídala bien!</p>
+    </div>`;
+    return;
+  }
+
+  const food = effectiveFood(st.pet);
+  const mood = petMood(food);
+  const lvl = petLevel(st);
+  const size = 46 + (food/100)*42 + Math.min(lvl*2, 14);
+  const rank = state.students.filter(s=>s.courseId===st.courseId).sort((a,b)=>b.points-a.points).findIndex(s=>s.id===st.id)+1;
+
+  $('main').innerHTML = `
+    <div class="card" style="text-align:center;">
+      <h2 style="justify-content:center;">${esc(st.name)}</h2>
+      <div class="stat-row" style="margin-bottom:4px;">
+        <span class="stat">⭐ ${st.points} pts</span>
+        <span class="stat">🏅 Nivel ${lvl}</span>
+        ${st.streak>0?`<span class="stat streak">🔥 Racha ×${st.streak}</span>`:''}
+      </div>
+      <div class="meta" style="justify-content:center;display:flex;">
+        <span class="badge">${esc(c?.name||'')}</span>
+        <span class="badge">Ranking del curso: #${rank||'—'}</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pet-stage">
+        <div style="position:relative;display:inline-block;">
+          <div class="pet-emoji ${mood.cls}" id="petShow" style="font-size:${size}px;">${st.pet.type}</div>
+          <span class="mood">${mood.e}</span>
+        </div>
+        <b>${mood.t}</b>
+        <span class="badge">🍖 Saciedad</span>
+        <div class="food-bar"><div class="food-fill" style="width:${food}%;"></div></div>
+        <button class="btn btn-gold" style="width:100%;margin-top:8px;" onclick="feedPet()"
+          ${st.points<FEED_COST?'disabled':''}>
+          🍔 Alimentar (−${FEED_COST} pts)
+        </button>
+        <p style="font-size:.72rem;color:var(--muted);margin-top:6px;">Si no la alimentas, adelgaza poco a poco…</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📤 Entregar tarea</h2>
+      <input type="file" id="hwFile" class="hidden" onchange="uploadFile(event)">
+      <button class="btn btn-primary" style="width:100%;" onclick="document.getElementById('hwFile').click()">📎 Subir archivo</button>
+      ${(state.files[st.id]||[]).map(f=>`<div class="rank-item" style="margin-top:8px;">
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;">📄 ${esc(f.name)}</span>
+        <span class="badge">${fmtDate(f.ts)}</span>
+      </div>`).join('')}
+    </div>
+
+    <button class="btn" style="width:100%;" onclick="goHome()">← Salir</button>`;
 }
 
+function pickPet(type){
+  const st = state.students.find(s=>s.id===currentStudent);
+  st.pet = {type, food:70, updated:Date.now()};
+  save(); render(); confetti(); sfx('feed');
+  toast('🐾 ¡' + type + ' es tu nueva mascota!','ok');
+}
+function feedPet(){
+  const st = state.students.find(s=>s.id===currentStudent);
+  if(st.points < FEED_COST){ toast('⚠️ Necesitas '+FEED_COST+' puntos','err'); return; }
+  st.points -= FEED_COST;
+  st.pet.food = Math.min(100, effectiveFood(st.pet) + FEED_FOOD);
+  st.pet.updated = Date.now();
+  state.movements.push({id:uid(), sid:st.id, delta:-FEED_COST, reason:'Alimentó a su mascota 🍔', ts:Date.now()});
+  save(); render(); sfx('feed');
+  const p = $('petShow'); if(p){ p.classList.add('happy'); setTimeout(()=>p.classList.remove('happy'),600); }
+  toast('🍔 ¡Ñam ñam!','ok');
+}
+async function uploadFile(ev){
+  const st = state.students.find(s=>s.id===currentStudent);
+  const f = ev.target.files[0]; if(!f) return;
+  if(f.size > 15*1024*1024){ toast('⚠️ Máximo 15 MB','err'); return; }
+  const files = state.files[st.id] = state.files[st.id]||[];
+  if(files.length>=10){ toast('⚠️ Máximo 10 archivos','err'); return; }
+  if(remoteDb){
+    try{
+      const path = 'entregas/'+st.id+'/'+Date.now()+'_'+f.name;
+      const ref = remoteDb.stMod.ref(remoteDb.storage, path);
+      await remoteDb.stMod.uploadBytes(ref, f);
+      const url = await remoteDb.stMod.getDownloadURL(ref);
+      files.push({name:f.name, size:f.size, ts:Date.now(), url});
+      save(); render(); toast('📤 ¡Entregado!','ok'); sfx('good'); confetti();
+    }catch(e){ toast('⚠️ Error al subir','err'); }
+  } else {
+    if(f.size > 1.5*1024*1024){ toast('⚠️ Sin base de datos: máx 1.5 MB','err'); return; }
+    const r = new FileReader();
+    r.onload = ()=>{
+      files.push({name:f.name, size:f.size, ts:Date.now(), data:r.result});
+      save(); render(); toast('📤 ¡Entregado!','ok'); sfx('good'); confetti();
+    };
+    r.readAsDataURL(f);
+  }
+  ev.target.value='';
+}
+
+/* ═══════════════ ARRANQUE ═══════════════ */
 document.querySelectorAll('.modal-bg').forEach(m=>{
   m.addEventListener('click', e=>{ if(e.target===m) m.classList.add('hidden'); });
 });
-document.getElementById('passInput').addEventListener('keydown', e=>{
-  if(e.key==='Enter') doLogin();
-});
-document.getElementById('nameInput').addEventListener('keydown', e=>{
-  if(e.key==='Enter') addStudent();
-});
+$('passInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
-updateUI();
+(function init(){
+  try{ state = Object.assign(defaultState(), JSON.parse(localStorage.getItem(LS_KEY)||'{}')); }catch(e){}
+  applyTheme();
+  render();
+  initFirebase();
+})();
 </script>
 </body>
 </html>
