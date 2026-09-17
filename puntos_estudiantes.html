@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<title>🏆 Puntos Estudiantes</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#243349;
+    --accent:#38bdf8; --green:#34d399; --red:#f87171;
+    --gold:#fbbf24; --text:#e2e8f0; --muted:#94a3b8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg); color:var(--text);
+    min-height:100vh; display:flex; flex-direction:column;
+    overflow-x:hidden;
+  }
+  header{
+    position:sticky;top:0;z-index:10;
+    background:rgba(15,23,42,.95);backdrop-filter:blur(8px);
+    padding:14px 16px;border-bottom:1px solid #334155;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  header h1{font-size:1.1rem;font-weight:700;white-space:nowrap;}
+  .btn{
+    border:none;border-radius:12px;padding:10px 14px;font-size:.9rem;
+    font-weight:600;cursor:pointer;transition:transform .1s,opacity .1s;
+    touch-action:manipulation;min-height:44px;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn-admin{background:#334155;color:var(--text);}
+  .btn-primary{background:var(--accent);color:#082f49;}
+  .btn-green{background:var(--green);color:#052e22;}
+  .btn-red{background:var(--red);color:#3f0a0a;}
+  .btn-gold{background:var(--gold);color:#422006;}
+  main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:16px 14px 100px;}
+  .search-wrap{position:sticky;top:63px;z-index:5;background:var(--bg);padding-bottom:12px;}
+  .search{
+    width:100%;padding:12px 16px;border-radius:12px;border:1px solid #334155;
+    background:var(--card);color:var(--text);font-size:16px;
+  }
+  .search::placeholder{color:var(--muted);}
+  .student-card{
+    background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .card-top{display:flex;align-items:center;gap:12px;min-width:0;}
+  .avatar{
+    width:44px;height:44px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:1rem;color:#082f49;background:var(--accent);
+  }
+  .name-wrap{flex:1;min-width:0;}
+  .student-name{font-weight:600;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rank{font-size:.72rem;color:var(--muted);}
+  .points-badge{
+    background:var(--card2);color:var(--gold);font-weight:700;font-size:1rem;
+    padding:6px 14px;border-radius:999px;border:1px solid #fbbf2444;white-space:nowrap;flex-shrink:0;
+  }
+  .card-controls{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+  }
+  .card-controls .btn{
+    padding:10px 4px;font-size:.95rem;border-radius:10px;min-width:0;
+  }
+  .empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:.95rem;line-height:1.6;}
+  .fab{
+    position:fixed;bottom:20px;right:20px;width:58px;height:58px;border-radius:50%;
+    background:var(--accent);color:#082f49;font-size:1.8rem;font-weight:700;
+    border:none;box-shadow:0 4px 16px rgba(56,189,248,.4);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;z-index:20;
+  }
+  .fab:active{transform:scale(.92);}
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(2,6,23,.8);z-index:50;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .modal{
+    background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:380px;
+    border:1px solid #334155;
+  }
+  .modal h2{font-size:1.15rem;margin-bottom:16px;}
+  .modal input{
+    width:100%;padding:12px 14px;border-radius:12px;border:1px solid #334155;
+    background:var(--card2);color:var(--text);font-size:16px;margin-bottom:14px;
+  }
+  .modal .row{display:flex;gap:10px;}
+  .modal .row .btn{flex:1;}
+  .hidden{display:none !important;}
+  .toast{
+    position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+    background:#0ea5e9;color:#fff;padding:10px 20px;border-radius:999px;
+    font-weight:600;font-size:.9rem;z-index:99;box-shadow:0 4px 12px rgba(0,0,0,.4);
+    max-width:90vw;text-align:center;
+    animation:fadein .2s ease;
+  }
+  @keyframes fadein{from{opacity:0;transform:translateX(-50%) translateY(10px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+  /* Pantallas muy angostas */
+  @media (max-width:380px){
+    .card-controls{grid-template-columns:repeat(3,1fr);}
+    header h1{font-size:1rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏆 Puntos</h1>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-admin hidden" id="btnBackup" onclick="exportData()">💾</button>
+    <button class="btn btn-admin" id="btnAdmin" onclick="toggleAdmin()">👤 Admin</button>
+  </div>
+</header>
+
+<main>
+  <div class="search-wrap">
+    <input class="search" id="search" placeholder="🔍 Buscar estudiante..." oninput="render()">
+  </div>
+  <div id="list"></div>
+  <div class="empty hidden" id="empty">Sin estudiantes todavía.<br>Pulsa <b>+</b> (como admin) para agregar el primero.</div>
+</main>
+
+<button class="fab hidden" id="fab" onclick="openAdd()">+</button>
+
+<!-- Login admin -->
+<div class="modal-bg hidden" id="loginModal">
+  <div class="modal">
+    <h2>🔐 Acceso Admin</h2>
+    <input type="password" id="passInput" placeholder="Contraseña" autocomplete="off">
+    <div class="row">
+      <button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+      <button class="btn btn-admin" onclick="closeModal('loginModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar estudiante -->
+<div class="modal-bg hidden" id="addModal">
+  <div class="modal">
+    <h2>➕ Agregar estudiante</h2>
+    <input type="text" id="nameInput" placeholder="Nombre del estudiante" autocomplete="off">
+    <div class="row">
+      <button class="btn btn-primary" onclick="addStudent()">Agregar</button>
+      <button class="btn btn-admin" onclick="closeModal('addModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LS_KEY = 'puntosEstudiantes_v1';
+const SESS_KEY = 'puntosAdminSession';
+/* Hash SHA-256 de la contraseña (por defecto "admin123").
+   Para cambiarla: abre la consola del navegador y ejecuta:
+   crypto.subtle.digest('SHA-256', new TextEncoder().encode('TU_CLAVE')).then(b=>console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''))) */
+const ADMIN_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+
+let isAdmin = sessionStorage.getItem(SESS_KEY) === '1';
+let students = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+let failedAttempts = 0;
+let lockedUntil = 0;
+
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(students)); }
+
+async function sha256(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function toggleAdmin(){
+  if(isAdmin){
+    isAdmin = false;
+    sessionStorage.removeItem(SESS_KEY);
+    updateUI();
+  } else {
+    document.getElementById('loginModal').classList.remove('hidden');
+    setTimeout(()=>document.getElementById('passInput').focus(),100);
+  }
+}
+
+async function doLogin(){
+  const now = Date.now();
+  if(now < lockedUntil){
+    toast('⏳ Bloqueado. Intenta en ' + Math.ceil((lockedUntil-now)/1000) + 's');
+    return;
+  }
+  const p = document.getElementById('passInput');
+  const hash = await sha256(p.value);
+  if(hash === ADMIN_HASH){
+    isAdmin = true;
+    sessionStorage.setItem(SESS_KEY, '1');
+    failedAttempts = 0;
+    p.value = '';
+    closeModal('loginModal'); updateUI();
+    toast('✅ Modo admin activado');
+  } else {
+    failedAttempts++;
+    if(failedAttempts >= 5){
+      lockedUntil = Date.now() + 60000; // bloqueo 60 s tras 5 fallos
+      failedAttempts = 0;
+      toast('🚫 Demasiados intentos. Bloqueado 60 s');
+    } else {
+      toast('❌ Incorrecta (' + failedAttempts + '/5)');
+    }
+  }
+}
+
+function updateUI(){
+  document.getElementById('fab').classList.toggle('hidden', !isAdmin);
+  document.getElementById('btnBackup').classList.toggle('hidden', !isAdmin);
+  document.getElementById('btnAdmin').textContent = isAdmin ? '🚪 Salir' : '👤 Admin';
+  render();
+}
+
+function render(){
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  const sorted = [...students].sort((a,b)=>b.points-a.points);
+  const list = document.getElementById('list');
+  const filtered = sorted.filter(s=>s.name.toLowerCase().includes(q));
+  document.getElementById('empty').classList.toggle('hidden', students.length>0);
+  list.innerHTML = filtered.map(s=>{
+    const rank = sorted.indexOf(s)+1;
+    const medal = rank===1?'🥇 1°':rank===2?'🥈 2°':rank===3?'🥉 3°':'#'+rank;
+    const initials = s.name.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase() || '?';
+    const controls = isAdmin ? `
+      <div class="card-controls">
+        <button class="btn btn-gold" onclick="change('${s.id}',1)">+1</button>
+        <button class="btn btn-gold" onclick="change('${s.id}',5)">+5</button>
+        <button class="btn btn-green" onclick="change('${s.id}',10)">+10</button>
+        <button class="btn btn-red" onclick="change('${s.id}',-1)">−1</button>
+        <button class="btn btn-red" onclick="removeStudent('${s.id}')" aria-label="Eliminar">🗑️</button>
+      </div>` : '';
+    return `<div class="student-card">
+      <div class="card-top">
+        <div class="avatar">${initials}</div>
+        <div class="name-wrap">
+          <div class="student-name">${escapeHtml(s.name)}</div>
+          <span class="rank">${medal}</span>
+        </div>
+        <span class="points-badge">${s.points} pts</span>
+      </div>
+      ${controls}
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(t){
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function openAdd(){
+  document.getElementById('addModal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('nameInput').focus(),100);
+}
+
+function addStudent(){
+  const inp = document.getElementById('nameInput');
+  const name = inp.value.trim().replace(/\s+/g,' ');
+  if(!name){ toast('⚠️ Escribe un nombre'); return; }
+  students.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), name, points:0});
+  save(); inp.value=''; closeModal('addModal'); render();
+  toast('✅ ' + name + ' agregado');
+}
+
+function change(id, delta){
+  const s = students.find(x=>x.id===id);
+  if(s){
+    s.points = Math.max(0, s.points + delta);
+    save(); render();
+  }
+}
+
+function removeStudent(id){
+  const s = students.find(x=>x.id===id);
+  if(s && confirm('¿Eliminar a ' + s.name + '?')){
+    students = students.filter(x=>x.id!==id);
+    save(); render(); toast('🗑️ Eliminado');
+  }
+}
+
+function exportData(){
+  const data = JSON.stringify(students, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'puntos_respaldo_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('💾 Respaldo descargado');
+}
+
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+let toastTimer;
+function toast(msg){
+  const old = document.querySelector('.toast'); if(old) old.remove();
+  const t = document.createElement('div');
+  t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.remove(), 2200);
+}
+
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.add('hidden'); });
+});
+document.getElementById('passInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') doLogin();
+});
+document.getElementById('nameInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') addStudent();
+});
+
+updateUI();
+</script>
+</body>
+</html>
